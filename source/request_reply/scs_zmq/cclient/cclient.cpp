@@ -6,6 +6,9 @@
 #include "zmq_utils.h"            //Zeromq 函数的导入在这里帮我们实现了
 #pragma comment(lib,"libzmq-v100-mt-gd-4_0_4.lib")
 
+#define FLAG 1
+//0阻塞,1费阻塞
+
 int main( int argc, char** argv )
 {
 	std::cout << "zmq client, connect: 6666" <<std::endl;
@@ -39,7 +42,7 @@ int main( int argc, char** argv )
 		int size = zmq_msg_size(&send_msg);
 		printf("client >>> 消息大小:%d\n", size);
 		//发出消息
-		zmq_msg_send(&send_msg,z_socket,0);
+		zmq_msg_send(&send_msg, z_socket, FLAG);
 		printf("client >>> msg:\t%s\n", (char*)zmq_msg_data(&send_msg));
 		//std::cout<<(char*)zmq_msg_data(&send_msg)<<std::endl;
 		zmq_msg_close(&send_msg);
@@ -48,8 +51,15 @@ int main( int argc, char** argv )
 		zmq_msg_t recv_msg;
 		zmq_msg_init(&recv_msg);
 		//0表示非阻塞
-		zmq_msg_recv(&recv_msg,z_socket,0);                    
-		printf("client <<< msg:\t%s\n", (char*)zmq_msg_data(&recv_msg) );
+		int recv = zmq_msg_recv(&recv_msg, z_socket, FLAG); 
+		size_t recv_size = zmq_msg_size(&recv_msg);
+		if ( recv_size > 0 )
+		{
+			printf("client <<< msg:\t%s\n", (char*)zmq_msg_data(&recv_msg) );
+		}else{
+			printf("client <<< no msg recv! line[%d]\n", __LINE__ );
+		}
+		
 		//std::cout<<(char*)zmq_msg_data(&recv_msg)<<std::endl;
 		zmq_msg_close(&recv_msg);
 
